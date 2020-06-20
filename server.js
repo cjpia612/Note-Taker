@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const db = require("./db/db.json");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,25 +19,32 @@ app.get("/", (req, res) => {
 app.get("/notes", (req, res) => {
     res.sendFile(path.join(__dirname, "public/notes.html"));
 });
-app.get("/api/notes", (req, res) => {
-    fs.readFile(__dirname +"db/db.json", "utf8", (err, data) => {
+
+app.get("/notes", (req, res) => {
+    res.sendFile(path.join(__dirname, "db/db.json"));
+});
+
+app.post("/api/notes", (req, res) => {
+    const notes = req.body;
+
+    notes.routeName = notes.name.replace(/\s+/g, "").toLowerCase();
+  
+    db.push(notes);
+    let notesData = fs.readFileSync(__dirname, "db/db.json", "utf8", (err, data) => {
         if (err) {
             throw err;
         } else {
-            return res.json(data);
+            return data;
         }
+
+    });
+    
+    fs.writeFileSync(db,JSON.stringify(notes), err => {
+        if (err) throw err;
+        res.json(notesData)
+
     });
 });
-
-// app.post("/api/notes", (req, res) => {
-//     const notes = req.body;
-  
-//     notes.routeName = waitingTable.name.replace(/\s+/g, "").toLowerCase();
-  
-//     waitingList.push(waitingTable);
-  
-//     res.json(waitingTable);
-// });
 
 
 
