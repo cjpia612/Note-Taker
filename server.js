@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const db = require("./db/db.json");
+const { runInNewContext } = require("vm");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.get("/api/notes", (req, res) => {
 
 app.post("/api/notes", (req, res) => {
     const notes = req.body;
+    notes.id = req.body.title;
   
     let notesData = fs.readFile("./db/db.json", "utf8", (err, data) => {
         if (err) throw err;
@@ -49,10 +51,24 @@ app.post("/api/notes", (req, res) => {
          });
  
     });
-    
- 
 });
 
+app.delete('/api/notes/:id', (req, res) => {
+    // Read all notes in the db.json file
+    fs.readFile("./db/db.json", "utf-8", (err, data) => {
+        if (err) throw err;
+
+        const jsonParse = JSON.parse(data);
+        const deleteID = jsonParse.find(newNote => newNote.id === req.params.id);
+
+        const idIndex = jsonParse.indexOf(deleteID);
+        jsonParse.splice(idIndex, 1);
+        fs.writeFile("./db/db.json", JSON.stringify(jsonParse), (err, data) => {
+            if (err) throw err;
+            res.json(jsonParse);
+        });
+    })        
+});   
 
 
 
