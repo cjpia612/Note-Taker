@@ -20,30 +20,37 @@ app.get("/notes", (req, res) => {
     res.sendFile(path.join(__dirname, "public/notes.html"));
 });
 
-app.get("/notes", (req, res) => {
+app.get("/api/notes", (req, res) => {
     res.sendFile(path.join(__dirname, "db/db.json"));
+});
+
+app.get("/api/notes", (req, res) => {
+    fs.readFile("./db/db.json","utf8", (err, data) => {
+        if (err) {
+            throw err;
+        } else {
+            return res.json(data);
+        }
+    })
 });
 
 app.post("/api/notes", (req, res) => {
     const notes = req.body;
-
-    notes.routeName = notes.name.replace(/\s+/g, "").toLowerCase();
   
-    db.push(notes);
-    let notesData = fs.readFileSync(__dirname, "db/db.json", "utf8", (err, data) => {
-        if (err) {
-            throw err;
-        } else {
-            return data;
-        }
-
+    let notesData = fs.readFile("./db/db.json", "utf8", (err, data) => {
+        if (err) throw err;
+        const parse = JSON.parse(data);
+        parse.push(notes);
+        
+        fs.writeFile("./db/db.json",JSON.stringify(parse), err => {
+            if (err) throw err;
+             res.json(notes);
+     
+         });
+ 
     });
     
-    fs.writeFileSync(db,JSON.stringify(notes), err => {
-        if (err) throw err;
-        res.json(notesData)
-
-    });
+ 
 });
 
 
